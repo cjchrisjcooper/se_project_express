@@ -17,7 +17,7 @@ const clothingItemSchema = new mongoose.Schema({
   likes: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
   },
-  createdAt: {},
+  createdAt: { type: Date },
 });
 
 module.exports = mongoose.model("item", clothingItemSchema);
