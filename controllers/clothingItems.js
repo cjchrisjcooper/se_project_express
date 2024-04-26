@@ -69,6 +69,8 @@ const createClothingItem = (req, res) => {
 const likeItem = (req, res) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
+  console.log(itemId);
+  console.log(userId);
   clothingItems
     .findByIdAndUpdate(itemId, { $addToSet: { likes: userId } }, { new: true })
     .orFail()
@@ -78,6 +80,11 @@ const likeItem = (req, res) => {
     })
     .catch((err) => {
       console.log(err);
+      if (err.name === "CastError") {
+        return res
+          .status(ERROR_CODES.INVALID_DATA)
+          .send({ message: err.message });
+      }
       if (err.name == "DocumentNotFoundError") {
         return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
       }
@@ -88,22 +95,32 @@ const likeItem = (req, res) => {
 };
 
 //un-like an item
-const dislikeItem = (req, res) =>
-  ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  )
+const dislikeItem = (req, res) => {
+  const { itemId } = req.params;
+  const { _id: userId } = req.user;
+  console.log(itemId);
+  console.log(userId);
+  clothingItems
+    .findByIdAndUpdate(itemId, { $pull: { likes: userId } }, { new: true })
     .orFail()
-    .then((like) => {
-      res.send(like);
+    .then((item) => {
+      res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send({ data: item });
     })
     .catch((err) => {
       console.log(err);
+      if (err.name === "CastError") {
+        return res
+          .status(ERROR_CODES.INVALID_DATA)
+          .send({ message: err.message });
+      }
+      if (err.name == "DocumentNotFoundError") {
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
+      }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
         .send({ message: err.message });
     });
+};
 module.exports = {
   getClothingItems,
   createClothingItem,
