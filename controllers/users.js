@@ -1,6 +1,6 @@
 const { Error } = require("mongoose");
 const User = require("../models/user");
-const { ERROR_CODES } = require("../utils/errors");
+const ERROR_CODES = require("../utils/errors");
 //GET users
 const getUsers = (req, res) => {
   User.find({})
@@ -11,7 +11,7 @@ const getUsers = (req, res) => {
       console.error(err);
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ _message: err.message });
+        .send({ message: err.message });
     });
 };
 
@@ -25,18 +25,16 @@ const getUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name == "DocumentNotFoundError") {
-        return res
-          .status(ERROR_CODES.NOT_FOUND)
-          .send({ _message: err.message });
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
       } else if (err.name == "CastError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ _message: err.message });
+          .send({ message: err.message });
       }
       console.error(err);
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ _message: err.message });
+        .send({ message: err.message });
     });
 };
 
@@ -54,11 +52,11 @@ const createUser = (req, res) => {
       if (err.name === "ValidationError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ _message: err.message });
+          .send({ message: err.message });
       }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ _message: err.message });
+        .send({ message: err.message });
     });
 };
 

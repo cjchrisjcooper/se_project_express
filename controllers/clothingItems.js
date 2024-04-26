@@ -1,6 +1,6 @@
 const { Error } = require("mongoose");
 const clothingItems = require("../models/clothingItem");
-const { ERROR_CODES } = require("../utils/errors");
+const ERROR_CODES = require("../utils/errors");
 //GET items
 const getClothingItems = (req, res) => {
   clothingItems
@@ -12,7 +12,7 @@ const getClothingItems = (req, res) => {
       console.error(err);
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ _message: err.message });
+        .send({ message: err.message });
     });
 };
 
@@ -26,19 +26,18 @@ const deleteClothingItem = (req, res) => {
       res.send(item);
     })
     .catch((err) => {
+      console.error(err);
       if (err.name == "DocumentNotFoundError") {
-        return res
-          .status(ERROR_CODES.NOT_FOUND)
-          .send({ _message: err.message });
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
       } else if (err.name == "CastError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ _message: err.message });
+          .send({ message: err.message });
       }
-      console.error(err);
+
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ _message: err.message });
+        .send({ message: err.message });
     });
 };
 
@@ -58,12 +57,56 @@ const createClothingItem = (req, res) => {
       if (err.name === "ValidationError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ _message: err.message });
+          .send({ message: err.message });
       }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ _message: err.message });
+        .send({ message: err.message });
     });
 };
 
-module.exports = { getClothingItems, createClothingItem, deleteClothingItem };
+//like an item
+const likeItem = (req, res) => {
+  clothingItems
+    .findByIdAndUpdate(
+      req.params.itemId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    )
+    .orFail()
+    .then((item) => {
+      console.log(res.status);
+      res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send({ data: item });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res
+        .status(ERROR_CODES.SERVER_ERROR)
+        .send({ message: err.message });
+    });
+};
+
+//un-like an item
+const dislikeItem = (req, res) =>
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
+    .orFail()
+    .then((like) => {
+      res.send(like);
+    })
+    .catch((err) => {
+      console.log(err);
+      return res
+        .status(ERROR_CODES.SERVER_ERROR)
+        .send({ message: err.message });
+    });
+module.exports = {
+  getClothingItems,
+  createClothingItem,
+  deleteClothingItem,
+  likeItem,
+  dislikeItem,
+};
