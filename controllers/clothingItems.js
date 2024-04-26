@@ -67,12 +67,10 @@ const createClothingItem = (req, res) => {
 
 //like an item
 const likeItem = (req, res) => {
+  const { itemId } = req.params;
+  const { _id: userId } = req.user;
   clothingItems
-    .findByIdAndUpdate(
-      req.params.itemId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true },
-    )
+    .findByIdAndUpdate(itemId, { $addToSet: { likes: userId } }, { new: true })
     .orFail()
     .then((item) => {
       console.log(res.status);
@@ -80,6 +78,9 @@ const likeItem = (req, res) => {
     })
     .catch((err) => {
       console.log(err);
+      if (err.name == "DocumentNotFoundError") {
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
+      }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
         .send({ message: err.message });
