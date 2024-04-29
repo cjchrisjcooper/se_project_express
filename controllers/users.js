@@ -1,7 +1,6 @@
-const { Error } = require("mongoose");
 const User = require("../models/user");
 const ERROR_CODES = require("../utils/errors");
-//GET users
+
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => {
@@ -11,11 +10,10 @@ const getUsers = (req, res) => {
       console.error(err);
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
-//GER user
 const getUser = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
@@ -24,21 +22,21 @@ const getUser = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name == "DocumentNotFoundError") {
-        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
-      } else if (err.name == "CastError") {
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not found" });
+      }
+      if (err.name === "CastError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: err.message });
+          .send({ message: "Invalid data" });
       }
       console.error(err);
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
-//POST user
 const createUser = (req, res) => {
   const { name, avatar } = req.body;
   console.log(name, avatar);
@@ -52,11 +50,11 @@ const createUser = (req, res) => {
       if (err.name === "ValidationError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: err.message });
+          .send({ message: "Invalid data" });
       }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 

@@ -1,7 +1,7 @@
-const { Error } = require("mongoose");
+// const Error = require("mongoose");
 const clothingItems = require("../models/clothingItem");
 const ERROR_CODES = require("../utils/errors");
-//GET items
+
 const getClothingItems = (req, res) => {
   clothingItems
     .find({})
@@ -12,11 +12,10 @@ const getClothingItems = (req, res) => {
       console.error(err);
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "Server error please try again later" });
     });
 };
 
-//DELETE item
 const deleteClothingItem = (req, res) => {
   const { itemId } = req.params;
   clothingItems
@@ -27,28 +26,28 @@ const deleteClothingItem = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      if (err.name == "DocumentNotFoundError") {
-        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
-      } else if (err.name == "CastError") {
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not found" });
+      }
+      if (err.name === "CastError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: err.message });
+          .send({ message: "Invalid data" });
       }
 
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "Server error please try again later" });
     });
 };
 
-//POST item
 const createClothingItem = (req, res) => {
-  const { name, weather, imageUrl, likes, createdAt } = req.body;
+  const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
-  console.log(name, weather, imageUrl, req.user._id, likes, createdAt);
+  console.log(name, weather, imageUrl, req.user._id);
 
   clothingItems
-    .create({ name, weather, imageUrl, owner, likes, createdAt })
+    .create({ name, weather, imageUrl, owner })
     .then((item) => {
       res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send(item);
     })
@@ -57,15 +56,14 @@ const createClothingItem = (req, res) => {
       if (err.name === "ValidationError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: err.message });
+          .send({ message: "Invalid data" });
       }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
-//like an item
 const likeItem = (req, res) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
@@ -83,18 +81,17 @@ const likeItem = (req, res) => {
       if (err.name === "CastError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: err.message });
+          .send({ message: "Invalid data" });
       }
-      if (err.name == "DocumentNotFoundError") {
-        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not found" });
       }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
-//un-like an item
 const dislikeItem = (req, res) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
@@ -111,14 +108,14 @@ const dislikeItem = (req, res) => {
       if (err.name === "CastError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: err.message });
+          .send({ message: "Invalid data" });
       }
-      if (err.name == "DocumentNotFoundError") {
+      if (err.name === "DocumentNotFoundError") {
         return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
       }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 module.exports = {
