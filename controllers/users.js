@@ -1,6 +1,6 @@
 const User = require("../models/user");
 const ERROR_CODES = require("../utils/errors");
-
+const bcrypt = require("bcryptjs");
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => {
@@ -38,10 +38,18 @@ const getUser = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, avatar } = req.body;
-  console.log(name, avatar);
-
-  User.create({ name, avatar })
+  const { name, avatar, email, password } = req.body;
+  console.log(name, avatar, email, password);
+  if (!email) {
+    return res
+      .status(ERROR_CODES.INVALID_DATA)
+      .send({ message: "Invalid data" });
+  }
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => {
+      User.create({ name, avatar, email, password: hash });
+    })
     .then((user) => {
       res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send(user);
     })
