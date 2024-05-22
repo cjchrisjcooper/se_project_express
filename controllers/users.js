@@ -55,6 +55,11 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
+      if (err.code === 11000) {
+        return res
+          .status(ERROR_CODES.Conflict)
+          .send({ message: "Email already exists" });
+      }
       if (err.name === "ValidationError") {
         return res
           .status(ERROR_CODES.INVALID_DATA)

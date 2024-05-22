@@ -11,6 +11,8 @@
   "author": "Chris Cooper",
   "license": "ISC",
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
     "mongoose": "^6.6.1",
     "validator": "^13.11.0"
