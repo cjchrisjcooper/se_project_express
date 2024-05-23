@@ -48,7 +48,9 @@ const createUser = (req, res) => {
   bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, avatar, email, password: hash })
       .then((user) => {
-        res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send(user);
+        const userObj = user.toObject();
+        delete userObj.password;
+        res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send(userObj);
       })
       .catch((err) => {
         console.error(err);
@@ -70,4 +72,29 @@ const createUser = (req, res) => {
   });
 };
 
-module.exports = { getUsers, createUser, getUser };
+const loginUser = (req, res) => {
+  const { email, password } = req.body;
+  //find the user in the database based the email we passed in
+  User.findUserByCredentials({ email })
+    .then((user) => {
+      //if the user is not found pass an error
+      if (!user) {
+        return Promise.reject(new Error("Incorrect password or email"));
+      }
+      //if the user is found we will compare the password we logged in with the password from the database
+      return bcrypt.compare(password, user.password);
+    })
+    .then((matched) => {
+      //if the passwords didn't match, throw an error
+      if (!matched) {
+        return Promise.reject(new Error("Incorrect password or email"));
+      }
+      //if the passwords did match, send a successful message
+      res.send({ message: "Congrats! You have logged in" });
+    })
+    .catch((err) => {
+      res.status(err.status).send({ message: err.message });
+    });
+};
+
+module.exports = { getUsers, createUser, getUser, loginUser };
