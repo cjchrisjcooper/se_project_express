@@ -45,30 +45,29 @@ const createUser = (req, res) => {
       .status(ERROR_CODES.INVALID_DATA)
       .send({ message: "Invalid data" });
   }
-  bcrypt
-    .hash(password, 10)
-    .then((hash) => {
-      User.create({ name, avatar, email, password: hash });
-    })
-    .then((user) => {
-      res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send(user);
-    })
-    .catch((err) => {
-      console.error(err);
-      if (err.code === 11000) {
+  bcrypt.hash(password, 10).then((hash) => {
+    User.create({ name, avatar, email, password: hash })
+      .then((user) => {
+        res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send(user);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (err.code === 11000) {
+          return res
+            .status(ERROR_CODES.Conflict)
+            .send({ message: "Email already exists" });
+        }
+        if (err.name === "ValidationError") {
+          return res
+            .status(ERROR_CODES.INVALID_DATA)
+            .send({ message: "Invalid data" });
+        }
         return res
-          .status(ERROR_CODES.Conflict)
-          .send({ message: "Email already exists" });
-      }
-      if (err.name === "ValidationError") {
-        return res
-          .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: "Invalid data" });
-      }
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
+          .status(ERROR_CODES.SERVER_ERROR)
+          .send({ message: "An error has occurred on the server" });
+      })
+      .catch((err) => res.status(err.status).send({ message: err.message }));
+  });
 };
 
 module.exports = { getUsers, createUser, getUser };
