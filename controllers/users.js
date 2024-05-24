@@ -41,7 +41,7 @@ const getUser = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
-  console.log(name, avatar, email, password);
+  console.log("This method is working");
   if (!email) {
     return res
       .status(ERROR_CODES.INVALID_DATA)
@@ -79,22 +79,19 @@ const loginUser = (req, res) => {
   console.log("this method is being called.");
   console.log(email, password);
   //find the user in the database based the email we passed in
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-        expiresIn: "7d",
-      });
-      res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send({
+  return User.findUserByCredentials(email, password).then((user) => {
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    res
+      .status(ERROR_CODES.REQUEST_SUCCESSFUL)
+      .send({
         message: "Authentication successful",
         user: { name: user.name, avatar: user.avatar },
         token,
-      });
-    })
-    .catch((err) => {
-      res.status(err.status).send({
-        message: err.message,
-      });
-    });
+      })
+      .catch((err) => res.status(err.status).send({ message: err.message }));
+  });
 };
 
 module.exports = { getUsers, createUser, getUser, loginUser };
