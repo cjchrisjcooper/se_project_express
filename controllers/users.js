@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const ERROR_CODES = require("../utils/errors");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../utils/config");
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => {
@@ -74,26 +76,24 @@ const createUser = (req, res) => {
 
 const loginUser = (req, res) => {
   const { email, password } = req.body;
+  console.log("this method is being called.");
+  console.log(email, password);
   //find the user in the database based the email we passed in
-  User.findUserByCredentials({ email })
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      //if the user is not found pass an error
-      if (!user) {
-        return Promise.reject(new Error("Incorrect password or email"));
-      }
-      //if the user is found we will compare the password we logged in with the password from the database
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      //if the passwords didn't match, throw an error
-      if (!matched) {
-        return Promise.reject(new Error("Incorrect password or email"));
-      }
-      //if the passwords did match, send a successful message
-      res.send({ message: "Congrats! You have logged in" });
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send({
+        message: "Authentication successful",
+        user: { name: user.name, avatar: user.avatar },
+        token,
+      });
     })
     .catch((err) => {
-      res.status(err.status).send({ message: err.message });
+      res.status(err.status).send({
+        message: err.message,
+      });
     });
 };
 
