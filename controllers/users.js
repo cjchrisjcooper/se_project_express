@@ -47,11 +47,19 @@ const getUser = (req, res) => {
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
   console.log("This method is working");
-  if (!email) {
+  if (!email || !password) {
     return res
       .status(ERROR_CODES.INVALID_DATA)
-      .send({ message: "Invalid data" });
+      .send({ message: "email and password are required" });
   }
+  User.findOne({ email }).then((match) => {
+    if (match) {
+      res
+        .status(ERROR_CODES.Conflict)
+        .send({ message: "Email already exists" });
+    }
+  });
+
   return bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, avatar, email, password: hash })
       .then((user) => {
