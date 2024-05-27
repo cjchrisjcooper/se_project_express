@@ -1,8 +1,13 @@
-const User = require("../models/user");
-const ERROR_CODES = require("../utils/errors");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
+
 const jwt = require("jsonwebtoken");
+
+const User = require("../models/user");
+
+const ERROR_CODES = require("../utils/errors");
+
 const { JWT_SECRET } = require("../utils/config");
+
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => {
@@ -47,7 +52,7 @@ const createUser = (req, res) => {
       .status(ERROR_CODES.INVALID_DATA)
       .send({ message: "Invalid data" });
   }
-  bcrypt.hash(password, 10).then((hash) => {
+  return bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, avatar, email, password: hash })
       .then((user) => {
         const userObj = user.toObject();
@@ -78,7 +83,7 @@ const loginUser = (req, res) => {
   const { email, password } = req.body;
   console.log("this method is being called.");
   console.log(email, password);
-  //find the user in the database based the email we passed in
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
@@ -102,6 +107,7 @@ const loginUser = (req, res) => {
           .status(ERROR_CODES.UNAUTHORIZED)
           .send({ message: "Incorrect password" });
       }
+      return res.status(err.status).send({ message: err.message });
     });
 };
 
