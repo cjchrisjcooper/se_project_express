@@ -46,6 +46,7 @@ const getUser = (req, res) => {
 
 const getCurrentUser = (req, res) => {
   const { _id } = req.user;
+
   User.findById(_id)
     .orFail()
     .then((user) => {
