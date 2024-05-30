@@ -44,6 +44,57 @@ const getUser = (req, res) => {
     });
 };
 
+const getCurrentUser = (req, res) => {
+  const { _id } = req.user;
+  User.findById(_id)
+    .orFail()
+    .then((user) => {
+      res.send(user);
+    })
+    .catch((err) => {
+      console.log(err.name);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not found" });
+      }
+      if (err.name === "CastError") {
+        return res
+          .status(ERROR_CODES.INVALID_DATA)
+          .send({ message: "Invalid data" });
+      }
+      console.error(err);
+      return res
+        .status(ERROR_CODES.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
+    });
+};
+
+const updateUser = (req, res) => {
+  const { name, avatar } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, avatar },
+    { new: true, runValidators: true },
+  )
+    .orFail()
+    .then((user) => {
+      res.status(ERROR_CODES.REQUEST_SUCCESSFUL).send(user);
+    })
+    .catch((err) => {
+      console.log(err);
+      if (err.name === "ValidationError") {
+        return res
+          .status(ERROR_CODES.INVALID_DATA)
+          .send({ message: "Invalid data" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not Found" });
+      }
+      return res
+        .status(ERROR_CODES.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
+    });
+};
+
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
   console.log("This method is working");
@@ -52,13 +103,13 @@ const createUser = (req, res) => {
       .status(ERROR_CODES.INVALID_DATA)
       .send({ message: "email and password are required" });
   }
-  User.findOne({ email }).then((match) => {
-    if (match) {
-      res
-        .status(ERROR_CODES.Conflict)
-        .send({ message: "Email already exists" });
-    }
-  });
+  // User.findOne({ email }).then((match) => {
+  //   if (match) {
+  //     res
+  //       .status(ERROR_CODES.Conflict)
+  //       .send({ message: "Email already exists" });
+  //   }
+  // });
 
   return bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, avatar, email, password: hash })
@@ -82,8 +133,7 @@ const createUser = (req, res) => {
         return res
           .status(ERROR_CODES.SERVER_ERROR)
           .send({ message: "An error has occurred on the server" });
-      })
-      .catch((err) => res.status(err.status).send({ message: err.message }));
+      });
   });
 };
 
@@ -91,6 +141,12 @@ const loginUser = (req, res) => {
   const { email, password } = req.body;
   console.log("this method is being called.");
   console.log(email, password);
+
+  if (!email || !password) {
+    return res
+      .status(ERROR_CODES.INVALID_DATA)
+      .send({ message: "email and password are required" });
+  }
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -119,4 +175,11 @@ const loginUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUser, loginUser };
+module.exports = {
+  getUsers,
+  createUser,
+  getUser,
+  loginUser,
+  getCurrentUser,
+  updateUser,
+};

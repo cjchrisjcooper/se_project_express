@@ -19,10 +19,17 @@ const getClothingItems = (req, res) => {
 const deleteClothingItem = (req, res) => {
   const { itemId } = req.params;
   clothingItems
-    .findByIdAndRemove(itemId)
+    .findById(itemId)
     .orFail()
     .then((item) => {
-      res.send(item);
+      if (!item.owner.equals(req.user._id)) {
+        return res.status(ERROR_CODES.FORBIDDEN).send({
+          message: "You need permission to delete this clothing item",
+        });
+      }
+      return item
+        .deleteOne()
+        .then(() => res.send({ message: "clothing item has been deleted" }));
     })
     .catch((err) => {
       console.error(err);
