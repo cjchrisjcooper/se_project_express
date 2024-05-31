@@ -8,42 +8,6 @@ const ERROR_CODES = require("../utils/errors");
 
 const { JWT_SECRET } = require("../utils/config");
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => {
-      res.send(users);
-    })
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
-};
-
-const getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .orFail()
-    .then((user) => {
-      res.send(user);
-    })
-    .catch((err) => {
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not found" });
-      }
-      if (err.name === "CastError") {
-        return res
-          .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: "Invalid data" });
-      }
-      console.error(err);
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
-};
-
 const getCurrentUser = (req, res) => {
   const { _id } = req.user;
 
@@ -104,13 +68,6 @@ const createUser = (req, res) => {
       .status(ERROR_CODES.INVALID_DATA)
       .send({ message: "email and password are required" });
   }
-  // User.findOne({ email }).then((match) => {
-  //   if (match) {
-  //     res
-  //       .status(ERROR_CODES.Conflict)
-  //       .send({ message: "Email already exists" });
-  //   }
-  // });
 
   return bcrypt.hash(password, 10).then((hash) => {
     User.create({ name, avatar, email, password: hash })
@@ -177,9 +134,7 @@ const loginUser = (req, res) => {
 };
 
 module.exports = {
-  getUsers,
   createUser,
-  getUser,
   loginUser,
   getCurrentUser,
   updateUser,
