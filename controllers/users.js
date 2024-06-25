@@ -62,7 +62,8 @@ const updateUser = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
-  console.log("This method is working");
+  console.log(req.body);
+  console.log("Create user method is working");
   if (!email || !password) {
     return res
       .status(ERROR_CODES.INVALID_DATA)
@@ -97,8 +98,8 @@ const createUser = (req, res) => {
 
 const loginUser = (req, res) => {
   const { email, password } = req.body;
-  console.log("this method is being called.");
-  console.log(email, password);
+  console.log("this is the object being passed to the controller");
+  console.log(req.body);
 
   if (!email || !password) {
     return res
