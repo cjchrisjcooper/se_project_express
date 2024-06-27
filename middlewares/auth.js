@@ -9,7 +9,7 @@ const auth = (req, res, next) => {
   if (!authorization || !authorization.startsWith("Bearer ")) {
     return res
       .status(ERROR_CODES.UNAUTHORIZED)
-      .send({ message: "need Authorization" });
+      .send({ message: "need Authorization. Needs authorization header" });
   }
 
   // getting the token
@@ -22,7 +22,7 @@ const auth = (req, res, next) => {
   } catch (err) {
     return res
       .status(ERROR_CODES.UNAUTHORIZED)
-      .send({ message: "need Authorization" });
+      .send({ message: "need Authorization. needs the right token" });
   }
 
   req.user = payload;
