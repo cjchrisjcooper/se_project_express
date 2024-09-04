@@ -1,8 +1,11 @@
 // const Error = require("mongoose");
 const clothingItems = require("../models/clothingItem");
 const ERROR_CODES = require("../utils/errors");
+const { BadRequestError } = require("../middlewares/BadRequestError");
+const { NotFoundError } = require("../middlewares/NotFoundError");
+const { ForbiddenError } = require("../middlewares/ForbiddenError");
 
-const getClothingItems = (req, res) => {
+const getClothingItems = (req, res, next) => {
   clothingItems
     .find({})
     .then((item) => {
@@ -10,22 +13,18 @@ const getClothingItems = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "Server error please try again later" });
+      next(err);
     });
 };
 
-const deleteClothingItem = (req, res) => {
+const deleteClothingItem = (req, res, next) => {
   const { itemId } = req.params;
   clothingItems
     .findById(itemId)
     .orFail()
     .then((item) => {
       if (!item.owner.equals(req.user._id)) {
-        return res.status(ERROR_CODES.FORBIDDEN).send({
-          message: "You need permission to delete this clothing item",
-        });
+        next(new ForbiddenError("You are not authroized to delete this item."));
       }
       return item
         .deleteOne()
@@ -34,21 +33,17 @@ const deleteClothingItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not found" });
+        next(new NotFoundError("not found"));
       }
       if (err.name === "CastError") {
-        return res
-          .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: "Invalid data" });
+        next(new BadRequestError("Invalid data"));
       }
 
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "Server error please try again later" });
+      next(err);
     });
 };
 
-const createClothingItem = (req, res) => {
+const createClothingItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
   console.log(name, weather, imageUrl, req.user._id);
@@ -61,17 +56,13 @@ const createClothingItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res
-          .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: "Invalid data" });
+        next(new BadRequestError("Invalid data"));
       }
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      next(err);
     });
 };
 
-const likeItem = (req, res) => {
+const likeItem = (req, res, next) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
   console.log(itemId);
@@ -86,20 +77,16 @@ const likeItem = (req, res) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "CastError") {
-        return res
-          .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: "Invalid data" });
+        next(new BadRequestError("Invalid data"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(ERROR_CODES.NOT_FOUND).send({ message: "Not found" });
+        next(new NotFoundError("not found"));
       }
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      next(err);
     });
 };
 
-const dislikeItem = (req, res) => {
+const dislikeItem = (req, res, next) => {
   const { itemId } = req.params;
   const { _id: userId } = req.user;
   console.log(itemId);
@@ -113,16 +100,12 @@ const dislikeItem = (req, res) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "CastError") {
-        return res
-          .status(ERROR_CODES.INVALID_DATA)
-          .send({ message: "Invalid data" });
+        next(new BadRequestError("Invalid data"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(ERROR_CODES.NOT_FOUND).send({ message: err.message });
+        next(new NotFoundError("not found"));
       }
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      next(err);
     });
 };
 module.exports = {
