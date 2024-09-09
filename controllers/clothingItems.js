@@ -24,7 +24,9 @@ const deleteClothingItem = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (!item.owner.equals(req.user._id)) {
-        next(new ForbiddenError("You are not authroized to delete this item."));
+        return next(
+          new ForbiddenError("You are not authroized to delete this item."),
+        );
       }
       return item
         .deleteOne()
@@ -33,13 +35,13 @@ const deleteClothingItem = (req, res, next) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("not found"));
+        return next(new NotFoundError("not found"));
       }
       if (err.name === "CastError") {
-        next(new BadRequestError("Invalid data"));
+        return next(new BadRequestError("Invalid data"));
       }
 
-      next(err);
+      return next(err);
     });
 };
 
@@ -56,9 +58,9 @@ const createClothingItem = (req, res, next) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid data"));
+        return next(new BadRequestError("Invalid data"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -77,12 +79,12 @@ const likeItem = (req, res, next) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "CastError") {
-        next(new BadRequestError("Invalid data"));
+        return next(new BadRequestError("Invalid data"));
       }
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("not found"));
+        return next(new NotFoundError("not found"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -100,12 +102,12 @@ const dislikeItem = (req, res, next) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "CastError") {
-        next(new BadRequestError("Invalid data"));
+        return next(new BadRequestError("Invalid data"));
       }
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("not found"));
+        return next(new NotFoundError("not found"));
       }
-      next(err);
+      return next(err);
     });
 };
 module.exports = {

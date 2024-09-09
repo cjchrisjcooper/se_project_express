@@ -35,9 +35,7 @@ userSchema.statics.findUserByCredentials = function findUserByCredentials(
   return this.findOne({ email })
     .select("+password")
     .then((user) => {
-      console.log(
-        user + " is the object being passed to the user model object",
-      );
+      console.log(user);
       if (!user) {
         return Promise.reject(new Error("Incorrect email"));
       }

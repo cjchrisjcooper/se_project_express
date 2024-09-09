@@ -23,13 +23,13 @@ const getCurrentUser = (req, res, next) => {
     .catch((err) => {
       console.log(err.name);
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("Not found."));
+        return next(new NotFoundError("Not found."));
       }
       if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid data."));
+        return next(new BadRequestError("Invalid data."));
       }
 
-      next(err);
+      return next(err);
     });
 };
 
@@ -47,12 +47,12 @@ const updateUser = (req, res, next) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid data."));
+        return next(new BadRequestError("Invalid data."));
       }
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError("Not found."));
+        return next(new NotFoundError("Not found."));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -74,12 +74,12 @@ const createUser = (req, res, next) => {
       .catch((err) => {
         console.error(err);
         if (err.code === 11000) {
-          next(new ConflictError("Email already exists"));
+          return next(new ConflictError("Email already exists"));
         }
         if (err.name === "ValidationError") {
-          next(new BadRequestError("Invalid data."));
+          return next(new BadRequestError("Invalid data."));
         }
-        next(err);
+        return next(err);
       });
   });
 };
@@ -107,12 +107,12 @@ const loginUser = (req, res, next) => {
     .catch((err) => {
       console.log(err);
       if (err.message === "Incorrect email") {
-        next(new UnauthorizedError("Incorrect Email"));
+        return next(new UnauthorizedError("Incorrect Email"));
       }
       if (err.message === "Incorrect password") {
-        next(new UnauthorizedError("Incorrect Password"));
+        return next(new UnauthorizedError("Incorrect Password"));
       }
-      return res.status(err.status).send({ message: err.message });
+      return next(err);
     });
 };
 
